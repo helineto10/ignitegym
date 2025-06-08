@@ -1,13 +1,54 @@
-import { Center, Heading, Text, VStack } from "@gluestack-ui/themed";
-import { SafeAreaView, ScrollView, TouchableOpacity } from "react-native";
+import { useState } from "react";
+import { Alert, SafeAreaView, ScrollView, TouchableOpacity } from "react-native";
+import { Center, Heading, Text, useToast, VStack } from "@gluestack-ui/themed";
+import * as ImagePicker from "expo-image-picker"
+import * as FileSystem from "expo-file-system"
+
 import { gluestackUIConfig as theme } from "../../config/gluestack-ui.config";
+
 import { ScreenHeader } from "@components/ScreenHeader";
 import { Button } from "@components/Button";
 import { UserPhoto } from "@components/UserPhoto";
 import { Input } from "@components/Input";
+import { ToastMessage } from "@components/ToastMessage";
 
 
 export function Profile() {
+  const [userPhoto, setUserPhoto] = useState("https://github.com/helineto10.png")
+
+  const toast = useToast()
+
+  async function handleUserPhotoSelect() {
+    try {
+    const photoSelected = await ImagePicker.launchImageLibraryAsync({
+      quality: 1,
+      aspect: [4, 4],
+      allowsEditing: true,
+    })
+    // Validação se o usuário cancelar
+    if (photoSelected.canceled) {
+      return
+    }
+
+    const photoURI = photoSelected.assets[0].uri
+
+    // Validação se a imagem passa de 5MB
+    if (photoURI) {
+      const photoInfo = (await FileSystem.getInfoAsync(photoURI)) as {
+        size: number
+      }
+
+      if(photoInfo.size && (photoInfo.size / 1024 / 1024) > 5) {
+        return Alert.alert("Essa imagem é muito grande. Escolha uma de até 5MB")
+      }
+
+      setUserPhoto(photoURI)
+    }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.tokens.colors.gray600 }}>
       <ScreenHeader title="Perfil" />
@@ -23,12 +64,12 @@ export function Profile() {
       }}>
         <Center>
           <UserPhoto
-            source={{ uri: "https://github.com/helineto10.png" }}
+            source={{ uri: userPhoto }}
             size="xl"
             alt="Imagem do Usuário"
           />
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleUserPhotoSelect}>
             <Heading
               color="$green500"
               fontSize="$sm"

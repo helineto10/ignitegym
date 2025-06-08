@@ -18,7 +18,7 @@ export function Exercise() {
 
   return (
     <VStack flex={1}>
-      // Header
+      
       <VStack px="$8" bg="$gray600" pt="$12">
         <TouchableOpacity onPress={handleGoBack}>
           <Icon as={ArrowLeft} color="$green500" size="xl" />
@@ -50,7 +50,6 @@ export function Exercise() {
         </HStack>
       </VStack>
 
-      // Content
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 32 }}
