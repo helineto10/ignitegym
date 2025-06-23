@@ -5,6 +5,7 @@ import { config } from './config/gluestack-ui.config';
 import { Loading } from '@components/Loading';
 import { Routes } from '@routes/index';
 import React from 'react';
+import { AuthContextProvider } from '@contexts/AuthContext';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -16,11 +17,10 @@ export default function App() {
     <GluestackUIProvider config={config}>
       <StatusBar barStyle={'light-content'} translucent backgroundColor="transparent" />
 
-      {!fontsLoaded ?
-        <Loading />
-        :
-        <Routes />
-      }
+      <AuthContextProvider>
+        {!fontsLoaded ? <Loading /> : <Routes />}
+      </AuthContextProvider>
+
 
     </GluestackUIProvider>
   );
