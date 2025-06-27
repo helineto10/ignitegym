@@ -5,18 +5,48 @@ import { Input } from "@components/Input";
 import { Button } from "@components/Button";
 import { useNavigation } from "@react-navigation/native";
 import { AuthNavigatorRoutesProps } from "@routes/auth.routes";
+import { Controller, useForm } from "react-hook-form";
+import { useAuth } from "@hooks/useAuth";
+import { AppError } from "@utils/AppError";
+import { Alert } from "react-native";
+import { useState } from "react";
+import { storageGetUsers } from "@storage/storageUser";
+
+type FormData = {
+  email: string;
+  password: string;
+}
 
 export function SignIn() {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const { signIn } = useAuth()
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
+
+  const { control, handleSubmit, formState: { errors } } = useForm<FormData>()
 
   function handleNewAccount() {
     navigation.navigate("signUp");
   }
+
+  async function handleSignIn({ email, password }: FormData) {
+    try {
+      setIsLoading(true)
+      await signIn(email, password)
+
+    } catch (error) {
+      const isAppError = error instanceof AppError
+      Alert.alert(isAppError ? error.message : 'Não foi possível logar. Tente novamente mais tarde.')
+
+      setIsLoading(false)
+    }
+  }
+
   return (
     <ScrollView
-    bgColor="$gray700" 
-    contentContainerStyle={{ flexGrow: 1 }}
-    showsVerticalScrollIndicator={false}>
+      bgColor="$gray700"
+      contentContainerStyle={{ flexGrow: 1 }}
+      showsVerticalScrollIndicator={false}>
       <VStack flex={1}>
         <Image
           source={BackgroundImage}
@@ -40,18 +70,40 @@ export function SignIn() {
               Acesse sua conta
             </Heading>
 
-            <Input
-              placeholder="E-mail"
-              keyboardType="email-address"
-              autoCapitalize="none"
+            <Controller
+              control={control}
+              name="email"
+              rules={{ required: 'Informe o e-mail' }}
+              render={({ field: { onChange } }) => (
+                <Input
+                  placeholder="E-mail"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  onChangeText={onChange}
+                  errorMessage={errors.email?.message}
+                />
+              )}
             />
-            <Input
-              placeholder="Senha"
-              secureTextEntry
+
+            <Controller
+              control={control}
+              name="password"
+              rules={{ required: 'Informe a senha' }}
+              render={({ field: { onChange } }) => (
+                <Input
+                  placeholder="Senha"
+                  secureTextEntry
+                  onChangeText={onChange}
+                  onSubmitEditing={handleSubmit(handleSignIn)}
+                  errorMessage={errors.password?.message}
+                />
+              )}
             />
 
             <Button
               title="Acessar"
+              onPress={handleSubmit(handleSignIn)}
+              isLoading={isLoading}
             />
 
           </Center>
